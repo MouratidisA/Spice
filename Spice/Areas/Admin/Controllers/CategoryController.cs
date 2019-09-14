@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Spice.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Spice.Data;
 using Spice.Models;
+using System.Threading.Tasks;
 
 namespace Spice.Areas.Admin.Controllers
 {
@@ -59,6 +58,21 @@ namespace Spice.Areas.Admin.Controllers
             if (category == null)
             {
                 return NotFound();
+            }
+
+            return View(category);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Category category)
+        {
+            if (ModelState.IsValid)
+            {
+                _db.Update(category);
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
             }
 
             return View(category);
