@@ -3,6 +3,7 @@ using Spice.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Spice.Models;
 
 namespace Spice.Areas.Admin.Controllers
 {
@@ -26,6 +27,23 @@ namespace Spice.Areas.Admin.Controllers
         public IActionResult Create()
         {
             return View();
+        }
+
+        //POST - CREATE
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Category category)
+        {
+            if (ModelState.IsValid)
+            {
+                _db.Category.Add(category);
+                await _db.SaveChangesAsync();
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(category);
+
         }
     }
 }
