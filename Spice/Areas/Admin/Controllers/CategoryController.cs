@@ -79,6 +79,26 @@ namespace Spice.Areas.Admin.Controllers
             return View(category);
         }
 
+
+        //GET - DETAILS
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var category = await _db.Category.FindAsync(id);
+
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            return View(category);
+        }
+
+
         //GET - DELETE
         public async Task<IActionResult> Delete(int? id)
         {
@@ -96,7 +116,6 @@ namespace Spice.Areas.Admin.Controllers
 
             return View(category);
         }
-
 
 
         [HttpPost,ActionName("Delete")]
