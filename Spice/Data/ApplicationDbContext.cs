@@ -12,5 +12,6 @@ namespace Spice.Data
         }
 
         public DbSet<Category> Category { set; get; }
+        public DbSet<SubCategory> SubCategory { set; get; }
     }
 }
