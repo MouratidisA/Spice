@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Spice.Data;
 using Spice.Models;
 using Spice.Models.ViewModels;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Spice.Areas.Admin.Controllers
 {
@@ -56,7 +55,7 @@ namespace Spice.Areas.Admin.Controllers
                 if (doesSubCategoryExists.Any())
                 {
                     //Error
-                    StatusMessage = "Error: Sub Category extists under " + doesSubCategoryExists.First().Category.Name + " category. Please use another name.";
+                    StatusMessage = "Error: Sub Category exists under " + doesSubCategoryExists.First().Category.Name + " category. Please use another name.";
 
                 }
                 else
@@ -85,8 +84,8 @@ namespace Spice.Areas.Admin.Controllers
             List<SubCategory> subCategories = new List<SubCategory>();
 
             subCategories = await (from subCategory in _db.SubCategory
-                             where subCategory.CategoryId == id
-                             select subCategory).ToListAsync();
+                                   where subCategory.CategoryId == id
+                                   select subCategory).ToListAsync();
 
             return Json(new SelectList(subCategories, "Id", "Name"));
 
@@ -118,7 +117,7 @@ namespace Spice.Areas.Admin.Controllers
         //POST - EDIT
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id ,SubCategoryAndCategoryViewModel model)
+        public async Task<IActionResult> Edit(SubCategoryAndCategoryViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -128,12 +127,15 @@ namespace Spice.Areas.Admin.Controllers
                 if (doesSubCategoryExists.Any())
                 {
                     //Error
-                    StatusMessage = "Error: Sub Category extists under " + doesSubCategoryExists.First().Category.Name + " category. Please use another name.";
+                    StatusMessage = "Error: Sub Category exists under " + doesSubCategoryExists.First().Category.Name + " category. Please use another name.";
 
                 }
                 else
                 {
-                    _db.SubCategory.Add(model.SubCategory);
+                    var subCatFromDb = await _db.SubCategory.FindAsync(model.SubCategory.Id);
+
+                    subCatFromDb.Name = model.SubCategory.Name;
+
                     await _db.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
