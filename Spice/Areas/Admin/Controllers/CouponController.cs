@@ -67,5 +67,63 @@ namespace Spice.Areas.Admin.Controllers
             return View(coupon);
 
         }
+
+        //GET - Edit
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            return View(await _db.Coupon.FindAsync(id));
+        }
+
+        [HttpPost, ActionName("Edit")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditPOST(Coupon coupon)
+        {
+
+            if (coupon.Id == 0) return NotFound();
+
+            Coupon couponFromDb = await _db.Coupon.FindAsync(coupon.Id);
+
+            if (!ModelState.IsValid)
+            {
+             
+                return View(coupon);
+            }
+
+            var files = HttpContext.Request.Form.Files;
+            if (files.Any())
+            {
+                byte[] p1 = null;
+                //Converting image into bytes and store it 
+                using (var fs1 = files[0].OpenReadStream())
+                {
+                    using (var ms1 = new MemoryStream())
+                    {
+                        fs1.CopyTo(ms1);
+                        p1 = ms1.ToArray();
+                    }
+                }
+
+                couponFromDb.Picture = p1;
+            }
+
+            couponFromDb.Name = coupon.Name;
+            couponFromDb.CouponType = coupon.CouponType;
+            couponFromDb.Discount = coupon.Discount;
+            couponFromDb.IsActivated = coupon.IsActivated;
+            couponFromDb.MinimumAmount = coupon.MinimumAmount;
+            
+
+                
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
     }
 }
