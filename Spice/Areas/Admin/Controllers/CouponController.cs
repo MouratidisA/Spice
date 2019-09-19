@@ -124,6 +124,40 @@ namespace Spice.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        //GET - Details
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
+            Coupon couponFromDb = await _db.Coupon.FindAsync(id);
+           
+            return View(couponFromDb);
+        }
+
+
+        //GET - DELETE
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+              
+            return View(await _db.Coupon.FindAsync(id));
+        }
+
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int? id)
+        {
+           
+            _db.Coupon.Remove(await _db.Coupon.FindAsync(id));
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
