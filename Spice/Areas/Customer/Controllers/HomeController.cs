@@ -1,15 +1,34 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Spice.Models;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Spice.Data;
+using Spice.Models.ViewModels;
 
 namespace Spice.Areas.Customer.Controllers
 {
     [Area("Customer")]
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly ApplicationDbContext _db;
+
+        public HomeController(ApplicationDbContext db)
         {
-            return View();
+            _db = db;            
+        }
+
+
+        public async Task<IActionResult> Index()
+        {
+            IndexViewModel IndexVM = new IndexViewModel()
+            {
+                MenuItems = await _db.MenuItem.Include(m=>m.Category).Include(m => m.SubCategory).ToListAsync(),
+                Categories = await _db.Category.ToListAsync(),
+                Coupons = await _db.Coupon.Where(c=>c.IsActivated==true).ToListAsync()
+            };
+            return View(IndexVM);
         }
 
         public IActionResult Privacy()
