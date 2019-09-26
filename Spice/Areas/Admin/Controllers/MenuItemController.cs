@@ -9,9 +9,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Spice.Areas.Admin.Controllers
 {
+    [Authorize(Roles = SD.ManagerUser)]
     [Area("Admin")]
     public class MenuItemController : Controller
     {
