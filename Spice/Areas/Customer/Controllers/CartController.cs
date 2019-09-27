@@ -9,6 +9,7 @@ using Spice.Utility;
 
 namespace Spice.Areas.Customer.Controllers
 {
+    [Area("Customer")]
     public class CartController : Controller
     {
 
@@ -34,9 +35,9 @@ namespace Spice.Areas.Customer.Controllers
             var claimsIdentity = (ClaimsIdentity) this.User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
-            var cart = _db.ShoppingCart.Where(c => c.ApplicationUserId == claim.Value);
+            var cart = _db.ShoppingCart.Where(c => c.ApplicationUserId == claim.Value).ToList();
 
-            if (cart != null)
+            if (cart.Any())
             {
                 DetailCart.CartList = cart.ToList(); 
             }
