@@ -1,4 +1,7 @@
-﻿@using Spice.Utility
+﻿@using System.Net
+@using Microsoft.AspNetCore.Http
+@using Spice.Utility
+@inject IHttpContextAccessor HttpContextAccessor
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,14 +11,14 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css">
     <environment include="Development">
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />     
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     </environment>
     <environment exclude="Development">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
               asp-fallback-href="~/lib/bootstrap/dist/css/bootstrap.min.css"
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute"
               crossorigin="anonymous"
-              integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" />        
+              integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" />
     </environment>
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
@@ -24,9 +27,9 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
             <div class="container">
                 <a class="navbar-brand" asp-area="Customer" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/mild.png" /> 
-                    <img src="~/images/spicy.png" /> 
-                    <img src="~/images/verySpicy.png" /> 
+                    <img src="~/images/mild.png" />
+                    <img src="~/images/spicy.png" />
+                    <img src="~/images/verySpicy.png" />
                     <label class="text-info" style="cursor:pointer">Spice</label>
                 </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -36,28 +39,41 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <partial name="_LoginPartial" />
                     <ul class="navbar-nav flex-grow-1">
-                        
-                        @if(User.IsInRole(SD.ManagerUser))
-                        { 
 
-                        <li class="nav-item dropdown text-white-50">
-                            <a class="nav-link dropdown-toggle " href="*" id="navbarDropDownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="False">
-                                Content Management
-                            </a>
-                            <div class="dropdown-menu " aria-labelby="navbarDropDownMenuLink">
-                                <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="Category">Category</a>
-                                <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="SubCategory">Sub Category</a>
-                                <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="MenuItem">MenuItem</a>
-                                <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="Coupon">Coupons</a>
-                                <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="User">Users</a>
-                            </div>
-                        </li>
+                        @if (User.IsInRole(SD.ManagerUser))
+                        {
+
+                            <li class="nav-item dropdown text-white-50">
+                                <a class="nav-link dropdown-toggle " href="*" id="navbarDropDownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="False">
+                                    Content Management
+                                </a>
+                                <div class="dropdown-menu " aria-labelby="navbarDropDownMenuLink">
+                                    <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="Category">Category</a>
+                                    <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="SubCategory">Sub Category</a>
+                                    <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="MenuItem">MenuItem</a>
+                                    <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="Coupon">Coupons</a>
+                                    <a class="dropdown-item" asp-action="Index" asp-area="Admin" asp-controller="User">Users</a>
+                                </div>
+                            </li>
                         }
-                        <li style="color: white">
-                            <a href="#" class="nav-link">
-                                <i class="fas fa-shopping-cart"></i> &nbsp; (0)
-                            </a>
-                        </li>
+                        @if (HttpContextAccessor.HttpContext.Session.GetInt32(@SD.ssShoppingCartCount) != null)
+                        {
+                            <li style="color: white">
+                                <a href="#" class="nav-link">
+                                    @{ var count = HttpContextAccessor.HttpContext.Session.GetInt32(@SD.ssShoppingCartCount);
+                                    }
+                                    <i class="fas fa-shopping-cart"></i> &nbsp; (@count)
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li style="color: white">
+                                <a href="#" class="nav-link">
+                                    <i class="fas fa-shopping-cart"></i> &nbsp; (0)
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -72,12 +88,12 @@
 
     <footer class="border-top pl-3 footer text-white-50" style="background-color: #343a40; ">
         <div class="container">
-            &copy; 2019 - Spice 
+            &copy; 2019 - Spice
         </div>
     </footer>
-    
-@*TODO include TinyMce for rich textArea*@
-<environment include="Development">
+
+    @*TODO include TinyMce for rich textArea*@
+    <environment include="Development">
         <script src="~/lib/jquery/dist/jquery.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.js"></script>
     </environment>

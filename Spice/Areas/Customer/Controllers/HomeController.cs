@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Spice.Data;
 using Spice.Models.ViewModels;
+using Spice.Utility;
 
 namespace Spice.Areas.Customer.Controllers
 {
@@ -32,6 +33,16 @@ namespace Spice.Areas.Customer.Controllers
                 Categories = await _db.Category.ToListAsync(),
                 Coupons = await _db.Coupon.Where(c => c.IsActivated == true).ToListAsync()
             };
+
+            var claimsIdentity = (ClaimsIdentity) this.User.Identity;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claim != null)
+            {
+                var userShoppingCartCount = _db.ShoppingCart.Where(s => s.ApplicationUserId == claim.Value).ToList().Count;
+                HttpContext.Session.SetInt32(SD.ssShoppingCartCount, userShoppingCartCount);
+            }
+
             return View(IndexVM);
         }
 
@@ -75,14 +86,14 @@ namespace Spice.Areas.Customer.Controllers
                 }
                 else
                 {
-                    cartFromDb.Count += cartObject.Count;
+                    cartFromDb.Count = cartFromDb.Count + cartObject.Count;
                 }
 
                 await _db.SaveChangesAsync();
                 var count = _db.ShoppingCart.Where(c => c.ApplicationUserId == cartObject.ApplicationUserId).ToList()
                     .Count;
 
-                HttpContext.Session.SetInt32("ssCartCount", count);
+                HttpContext.Session.SetInt32(SD.ssShoppingCartCount, count);
 
                 return RedirectToAction("Index");
             }
