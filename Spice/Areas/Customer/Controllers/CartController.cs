@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -38,10 +39,7 @@ namespace Spice.Areas.Customer.Controllers
 
             var cart = _db.ShoppingCart.Where(c => c.ApplicationUserId == claim.Value).ToList();
 
-            if (cart.Any())
-            {
-                DetailCart.CartList = cart.ToList();
-            }
+            DetailCart.CartList = cart.Any() ? cart.ToList() : new List<ShoppingCart>();
 
             foreach (var cartItem in DetailCart.CartList)
             {
@@ -85,6 +83,62 @@ namespace Spice.Areas.Customer.Controllers
         public IActionResult RemoveCoupon()
         {
             HttpContext.Session.SetString(SD.ssCouponCode, string.Empty);
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Plus(int cartId)
+        {
+
+            var cart = await _db.ShoppingCart.FirstOrDefaultAsync(c => c.Id == cartId);
+
+            if (cart != null)
+            {
+                cart.Count += 1;
+                await _db.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        public async Task<IActionResult> Minus(int cartId)
+        {
+
+            var cart = await _db.ShoppingCart.FirstOrDefaultAsync(c => c.Id == cartId);
+
+
+            if (cart.Count == 1)
+            {
+                _db.ShoppingCart.Remove(cart);
+                await _db.SaveChangesAsync();
+
+                var cartCount = _db.ShoppingCart.Where(c => c.ApplicationUserId == cart.ApplicationUserId).ToList()
+                    .Count();
+
+                HttpContext.Session.SetInt32(SD.ssShoppingCartCount, cartCount);
+            }
+            else
+            {
+                cart.Count -= 1;
+                await _db.SaveChangesAsync();
+            }
+
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        public async Task<IActionResult> Remove(int cartId)
+        {
+
+            var cart = await _db.ShoppingCart.FirstOrDefaultAsync(c => c.Id == cartId);
+
+            _db.ShoppingCart.Remove(cart);
+            await _db.SaveChangesAsync();
+
+            var cartCount = _db.ShoppingCart.Where(c => c.ApplicationUserId == cart.ApplicationUserId).ToList().Count();
+            HttpContext.Session.SetInt32(SD.ssShoppingCartCount, cartCount);
+
             return RedirectToAction(nameof(Index));
         }
     }
