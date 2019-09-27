@@ -33,14 +33,14 @@ namespace Spice.Areas.Customer.Controllers
             DetailCart.OrderHeader.OrderTotal = 0;
 
 
-            var claimsIdentity = (ClaimsIdentity) this.User.Identity;
+            var claimsIdentity = (ClaimsIdentity)this.User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
             var cart = _db.ShoppingCart.Where(c => c.ApplicationUserId == claim.Value).ToList();
 
             if (cart.Any())
             {
-                DetailCart.CartList = cart.ToList(); 
+                DetailCart.CartList = cart.ToList();
             }
 
             foreach (var cartItem in DetailCart.CartList)
@@ -51,7 +51,7 @@ namespace Spice.Areas.Customer.Controllers
                 cartItem.MenuItem.Description = SD.ConvertToRawHtml(cartItem.MenuItem.Description);
                 if (cartItem.MenuItem.Description.Length > 100)
                 {
-                    cartItem.MenuItem.Description = cartItem.MenuItem.Description.Substring(0,99) + "...";
+                    cartItem.MenuItem.Description = cartItem.MenuItem.Description.Substring(0, 99) + "...";
                 }
             }
 
@@ -63,6 +63,8 @@ namespace Spice.Areas.Customer.Controllers
                 DetailCart.OrderHeader.CouponCode = HttpContext.Session.GetString(SD.ssCouponCode);
                 var couponFromDb = await _db.Coupon
                     .Where(c => c.Name.ToLower() == DetailCart.OrderHeader.CouponCode.ToLower()).FirstOrDefaultAsync();
+                DetailCart.OrderHeader.OrderTotal =
+                    SD.DiscountedPrice(couponFromDb, DetailCart.OrderHeader.OrderTotalOriginal);
             }
 
             return View(DetailCart);
@@ -77,6 +79,12 @@ namespace Spice.Areas.Customer.Controllers
             }
 
             HttpContext.Session.SetString(SD.ssCouponCode, DetailCart.OrderHeader.CouponCode);
+            return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult RemoveCoupon()
+        {
+            HttpContext.Session.SetString(SD.ssCouponCode, string.Empty);
             return RedirectToAction(nameof(Index));
         }
     }
