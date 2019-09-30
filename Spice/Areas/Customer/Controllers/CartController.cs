@@ -91,14 +91,14 @@ namespace Spice.Areas.Customer.Controllers
             foreach (var cartItem in DetailCart.CartList)
             {
                 cartItem.MenuItem = await _db.MenuItem.FirstOrDefaultAsync(m => m.Id == cartItem.MenuItemId);
-                DetailCart.OrderHeader.OrderTotal =DetailCart.OrderHeader.OrderTotal + (cartItem.MenuItem.Price * cartItem.Count);
-                
+                DetailCart.OrderHeader.OrderTotal = DetailCart.OrderHeader.OrderTotal + (cartItem.MenuItem.Price * cartItem.Count);
+
             }
 
             DetailCart.OrderHeader.OrderTotalOriginal = DetailCart.OrderHeader.OrderTotal;
 
             DetailCart.OrderHeader.PickupName = applicationUser.Name;
-            DetailCart.OrderHeader.PhoneNumber= applicationUser.PhoneNumber;
+            DetailCart.OrderHeader.PhoneNumber = applicationUser.PhoneNumber;
             DetailCart.OrderHeader.PickUpTime = DateTime.Now;
 
             if (HttpContext.Session.GetString(SD.ssCouponCode) != null)
@@ -111,6 +111,70 @@ namespace Spice.Areas.Customer.Controllers
             }
 
             return View(DetailCart);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [ActionName("Summary")]
+        public async Task<IActionResult> SummaryPost()
+        {
+            var claimsIdentity = (ClaimsIdentity)this.User.Identity;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+            DetailCart.CartList = await _db.ShoppingCart.Where(c => c.ApplicationUserId == claim.Value).ToListAsync();
+
+            DetailCart.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
+            DetailCart.OrderHeader.OrderDate = DateTime.Now;
+            DetailCart.OrderHeader.UserId = claim.Value;
+            DetailCart.OrderHeader.Status = SD.PaymentStatusPending;
+            DetailCart.OrderHeader.PickUpTime = Convert.ToDateTime(DetailCart.OrderHeader.PickUpDate.ToShortDateString() + " " + DetailCart.OrderHeader.PickUpTime.ToShortTimeString());
+
+            List<OrderDetails> orderDetailsList = new List<OrderDetails>();
+
+            _db.OrderHeader.Add(DetailCart.OrderHeader);
+            await _db.SaveChangesAsync();
+
+            DetailCart.OrderHeader.OrderTotalOriginal = 0;
+
+            foreach (var cartItem in DetailCart.CartList)
+            {
+                cartItem.MenuItem = await _db.MenuItem.FirstOrDefaultAsync(m => m.Id == cartItem.MenuItemId);
+                OrderDetails orderDetails = new OrderDetails
+                {
+                    MenuItemId = cartItem.MenuItemId,
+                    OrderId = DetailCart.OrderHeader.Id,
+                    Description = cartItem.MenuItem.Description,
+                    Name = cartItem.MenuItem.Name,
+                    Price = cartItem.MenuItem.Price,
+                    Count = cartItem.Count
+                };
+                DetailCart.OrderHeader.OrderTotalOriginal += orderDetails.Count * orderDetails.Price;
+                _db.OrderDetails.Add(orderDetails);
+
+            }
+
+            if (HttpContext.Session.GetString(SD.ssCouponCode) != null)
+            {
+                DetailCart.OrderHeader.CouponCode = HttpContext.Session.GetString(SD.ssCouponCode);
+                var couponFromDb = await _db.Coupon.Where(c => c.Name.ToLower() == DetailCart.OrderHeader.CouponCode.ToLower()).FirstOrDefaultAsync();
+                DetailCart.OrderHeader.OrderTotal = SD.DiscountedPrice(couponFromDb, DetailCart.OrderHeader.OrderTotalOriginal);
+            }
+            else
+            {
+                DetailCart.OrderHeader.OrderTotal = DetailCart.OrderHeader.OrderTotalOriginal;
+            }
+
+            DetailCart.OrderHeader.CouponDiscount =
+                DetailCart.OrderHeader.OrderTotalOriginal - DetailCart.OrderHeader.OrderTotal;
+
+
+            _db.ShoppingCart.RemoveRange(DetailCart.CartList);
+            HttpContext.Session.SetInt32(SD.ssShoppingCartCount, 0);
+
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction("Index", "Home");
+            //return RedirectToAction("Confirm", "Order", new { id = DetailCart.OrderHeader.Id });
         }
 
         public IActionResult AddCoupon()
