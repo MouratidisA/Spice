@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -68,6 +69,49 @@ namespace Spice.Areas.Customer.Controllers
             return View(DetailCart);
         }
 
+
+        public async Task<IActionResult> Summary()
+        {
+            DetailCart = new OrderDetailsCart()
+            {
+                OrderHeader = new OrderHeader()
+            };
+            DetailCart.OrderHeader.OrderTotal = 0;
+
+
+            var claimsIdentity = (ClaimsIdentity)this.User.Identity;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            ApplicationUser applicationUser =
+                await _db.ApplicationUser.Where(u => u.Id == claim.Value).FirstOrDefaultAsync();
+
+            var cart = _db.ShoppingCart.Where(c => c.ApplicationUserId == claim.Value).ToList();
+
+            DetailCart.CartList = cart.Any() ? cart.ToList() : new List<ShoppingCart>();
+
+            foreach (var cartItem in DetailCart.CartList)
+            {
+                cartItem.MenuItem = await _db.MenuItem.FirstOrDefaultAsync(m => m.Id == cartItem.MenuItemId);
+                DetailCart.OrderHeader.OrderTotal =DetailCart.OrderHeader.OrderTotal + (cartItem.MenuItem.Price * cartItem.Count);
+                
+            }
+
+            DetailCart.OrderHeader.OrderTotalOriginal = DetailCart.OrderHeader.OrderTotal;
+
+            DetailCart.OrderHeader.PickupName = applicationUser.Name;
+            DetailCart.OrderHeader.PhoneNumber= applicationUser.PhoneNumber;
+            DetailCart.OrderHeader.PickUpTime = DateTime.Now;
+
+            if (HttpContext.Session.GetString(SD.ssCouponCode) != null)
+            {
+                DetailCart.OrderHeader.CouponCode = HttpContext.Session.GetString(SD.ssCouponCode);
+                var couponFromDb = await _db.Coupon
+                    .Where(c => c.Name.ToLower() == DetailCart.OrderHeader.CouponCode.ToLower()).FirstOrDefaultAsync();
+                DetailCart.OrderHeader.OrderTotal =
+                    SD.DiscountedPrice(couponFromDb, DetailCart.OrderHeader.OrderTotalOriginal);
+            }
+
+            return View(DetailCart);
+        }
 
         public IActionResult AddCoupon()
         {
