@@ -69,7 +69,7 @@
                             @Html.DisplayFor(m => item.OrderDetails.Count)
                         </td>
                         <td>
-                            <button type="submit" class="btn btn-success anchoDetail" data-id="@item.OrderHeader.Id" data-toggle="modal">
+                            <button type="submit" class="btn btn-success anchorDetail" data-id="@item.OrderHeader.Id" data-toggle="modal">
                                 <i class="far fa-list-alt"></i> Details
                             </button>
                         </td>
@@ -104,3 +104,51 @@
     </div>
 
 </div>
+
+@section scripts
+{
+    <script>
+        var PostBackURL = '/Customer/Order/GetOrderDetails';
+        var OrderStatusURL = '/Customer/Order/GetOrderStatus';
+        $(function () {
+            $(".anchorDetail").click(function () {
+                var $buttonClicked = $(this);
+                var id = $buttonClicked.attr('data-id');
+                $.ajax({
+                    type: "GET",
+                    url: PostBackURL,
+                    contentType: "application/json; charset=utf-8",
+                    data: { "Id": id },
+                    cache: false,
+                    datatyype: "json",
+                    success: function (data) {
+                        $('#myModalContent').html(data);
+                        $('#myModal').modal('show');
+                    },
+                    error: function () {
+                        alert("Dynamic content load failed");
+                    }
+                });
+            });
+            $(".btnOrderStatus").click(function () {
+                var $buttonClicked = $(this);
+                var id = $buttonClicked.attr('data-id');
+                $.ajax({
+                    type: "GET",
+                    url: OrderStatusURL,
+                    contentType: "application/json; charset=utf-8",
+                    data: { "Id": id },
+                    cache: false,
+                    datatype: "json",
+                    success: function (data) {
+                        $('#myOrderStatusContent').html(data);
+                        $('#myOrderStatus').modal('show');
+                    },
+                    error: function () {
+                        alert("Dynamic content load failed.");
+                    }
+                });
+            });
+        });
+    </script>
+}
