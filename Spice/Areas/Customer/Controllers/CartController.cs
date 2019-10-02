@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Spice.Data;
 using Spice.Models;
-using Spice.Models.ViewModels;
 using Spice.Utility;
 using Stripe;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Spice.Areas.Customer.Controllers
 {
@@ -298,27 +296,7 @@ namespace Spice.Areas.Customer.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize]
-        public async Task<IActionResult> OrderHistory(int cartId)
-        {
-            var claimsIdentity = (ClaimsIdentity)this.User.Identity;
-            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
-            List<OrderDetailsViewModel> orderList = new List<OrderDetailsViewModel>();
-            List<OrderHeader> orderHeaderList = await _db.OrderHeader.Include(h => h.ApplicationUser).Where(h => h.UserId == claim.Value).ToListAsync();
-
-            foreach (OrderHeader item in orderHeaderList)
-            {
-                OrderDetailsViewModel individual = new OrderDetailsViewModel
-                {
-                    OrderHeader = item,
-                    OrderDetails = await _db.OrderDetails.Where(d => d.OrderId == item.Id).ToListAsync()
-                };
-                orderList.Add(individual);
-            }
-
-            return View(orderList);
-        }
 
 
     }
