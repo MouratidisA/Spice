@@ -222,7 +222,7 @@ namespace Spice.Areas.Customer.Controllers
             #endregion
 
             await _db.SaveChangesAsync();
-            return RedirectToAction("Confirm", "Order",new{id=DetailCart.OrderHeader.Id});
+            return RedirectToAction("Confirm", "Order", new { id = DetailCart.OrderHeader.Id });
         }
 
         public IActionResult AddCoupon()
@@ -297,5 +297,29 @@ namespace Spice.Areas.Customer.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        [Authorize]
+        public async Task<IActionResult> OrderHistory(int cartId)
+        {
+            var claimsIdentity = (ClaimsIdentity)this.User.Identity;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+            List<OrderDetailsViewModel> orderList = new List<OrderDetailsViewModel>();
+            List<OrderHeader> orderHeaderList = await _db.OrderHeader.Include(h => h.ApplicationUser).Where(h => h.UserId == claim.Value).ToListAsync();
+
+            foreach (OrderHeader item in orderHeaderList)
+            {
+                OrderDetailsViewModel individual = new OrderDetailsViewModel
+                {
+                    OrderHeader = item,
+                    OrderDetails = await _db.OrderDetails.Where(d => d.OrderId == item.Id).ToListAsync()
+                };
+                orderList.Add(individual);
+            }
+
+            return View(orderList);
+        }
+
+
     }
 }
