@@ -49,31 +49,36 @@ namespace Spice.Areas.Customer.Controllers
         [Authorize]
         public async Task<IActionResult> OrderHistory(int productPage = 1)
         {
-            var claimsIdentity = (ClaimsIdentity)this.User.Identity;
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
-            OrderListViewModel orderListViewModel = new OrderListViewModel()
+
+            OrderListViewModel orderListVM = new OrderListViewModel()
             {
                 Orders = new List<OrderDetailsViewModel>()
             };
 
 
-            List<OrderHeader> orderHeaderList = await _db.OrderHeader.Include(h => h.ApplicationUser).Where(h => h.UserId == claim.Value).ToListAsync();
 
-            foreach (OrderHeader item in orderHeaderList)
+            List<OrderHeader> OrderHeaderList = await _db.OrderHeader.Include(o => o.ApplicationUser).Where(u => u.UserId == claim.Value).ToListAsync();
+
+            foreach (OrderHeader item in OrderHeaderList)
             {
                 OrderDetailsViewModel individual = new OrderDetailsViewModel
                 {
                     OrderHeader = item,
-                    OrderDetails = await _db.OrderDetails.Where(d => d.OrderId == item.Id).ToListAsync()
+                    OrderDetails = await _db.OrderDetails.Where(o => o.OrderId == item.Id).ToListAsync()
                 };
-                orderListViewModel.Orders.Add(individual);
+                orderListVM.Orders.Add(individual);
             }
+            //TODO Fix paging issue below
+            var count = orderListVM.Orders.Count;
+            orderListVM.Orders = orderListVM.Orders.OrderByDescending(p => p.OrderHeader.Id)
+                //.Skip((productPage - 1) * PageSize)
+                //.Take(PageSize).ToList();
+                .ToList();
 
-            var count = orderListViewModel.Orders.Count;
-            orderListViewModel.Orders = orderListViewModel.Orders.OrderByDescending(p => p.OrderHeader.Id).Skip((productPage - 1) * PageSize).Take(PageSize).ToList();
-
-            orderListViewModel.PagingInfo = new PagingInfo()
+            orderListVM.PagingInfo = new PagingInfo
             {
                 CurrentPage = productPage,
                 ItemsPerPage = PageSize,
@@ -81,7 +86,14 @@ namespace Spice.Areas.Customer.Controllers
                 urlParam = "/Customer/Order/OrderHistory?productPage=:"
             };
 
-            return View(orderListViewModel);
+            return View(orderListVM);
+        }
+
+
+        public IActionResult GetOrderStatus(int Id)
+        {
+            return PartialView("_OrderStatus",  _db.OrderHeader.FirstOrDefault(m => m.Id == Id).Status);
+
         }
 
         public async Task<IActionResult> GetOrderDetails(int id)
