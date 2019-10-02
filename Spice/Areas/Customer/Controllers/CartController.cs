@@ -222,7 +222,7 @@ namespace Spice.Areas.Customer.Controllers
             #endregion
 
             await _db.SaveChangesAsync();
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Confirm", "Order",new{id=DetailCart.OrderHeader.Id});
         }
 
         public IActionResult AddCoupon()
