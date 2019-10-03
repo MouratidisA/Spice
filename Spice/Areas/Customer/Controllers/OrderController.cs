@@ -110,7 +110,7 @@ namespace Spice.Areas.Customer.Controllers
             }
            
 
-            return View(orderDetailsViewModelList.OrderBy(o=>o.OrderHeader.PickUpTime));
+            return View(orderDetailsViewModelList.OrderBy(o=>o.OrderHeader.PickUpTime).ToList());
         }
 
         public IActionResult GetOrderStatus(int Id)

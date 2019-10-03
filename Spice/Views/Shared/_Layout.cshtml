@@ -77,10 +77,10 @@
                         {
 
                             <li class="nav-item dropdown text-white-50">
-                                <a class="nav-link dropdown-toggle " href="*" id="navbarDropDown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="False">
+                                <a class="nav-link dropdown-toggle " href="*" id="orderNavbarDropDown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="False">
                                     Order
                                 </a>
-                                <div class="dropdown-menu " aria-labelby="navbarDropDownMenuLink">
+                                <div class="dropdown-menu " aria-labelby="orderNavbarDropDown">
                                     @if (User.IsInRole(SD.KitchenUser) || User.IsInRole(SD.ManagerUser))
                                     {   <a class="dropdown-item" asp-action="ManageOrder" asp-area="Customer" asp-controller="Order">Manage Order</a>}
                                     
