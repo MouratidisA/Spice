@@ -160,9 +160,6 @@ namespace Spice.Areas.Customer.Controllers
         [Authorize]
         public async Task<IActionResult> OrderPickup(int productPage = 1, string searchEmail = null, string searchPhone = null, string searchName = null)
         {
-            //var claimsIdentity = (ClaimsIdentity)User.Identity;
-            //var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-
             OrderListViewModel orderListVM = new OrderListViewModel()
             {
                 Orders = new List<OrderDetailsViewModel>()
@@ -206,7 +203,7 @@ namespace Spice.Areas.Customer.Controllers
                             .Where(u => u.UserId == user.Id)
                             .OrderByDescending(o => o.OrderDate)
                             .ToListAsync();
-                    }                  
+                    }
                     else
                     {
                         if (searchPhone != null)
@@ -257,7 +254,7 @@ namespace Spice.Areas.Customer.Controllers
         [Authorize(Roles = SD.FrontDeskUser + "," + SD.ManagerUser)]
         [HttpPost]
         [ActionName("OrderPickup")]
-        public async Task<IActionResult> OrderPickupPost(int orderId )
+        public async Task<IActionResult> OrderPickupPost(int orderId)
         {
             OrderHeader orderHeader = await _db.OrderHeader.FindAsync(orderId);
             orderHeader.Status = SD.StatusCompleted;
@@ -265,4 +262,4 @@ namespace Spice.Areas.Customer.Controllers
             return RedirectToAction("OrderPickup", "Order");
         }
     }
-    }
+}
