@@ -57,6 +57,12 @@ namespace Spice
                 facebookOptions.AppId = "Facebook AppId";
                 facebookOptions.AppSecret = "Facebook Secret Key";
             });
+            services.AddAuthentication().AddGoogle(GoogleOptions =>
+            {
+                //TODO fill information with Application's Google keys
+                GoogleOptions.ClientId = "Google Client Id";
+                GoogleOptions.ClientSecret = "Google Client Secret";
+            });
 
             services.AddSession(options =>
                 {
