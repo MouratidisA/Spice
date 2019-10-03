@@ -48,6 +48,9 @@ namespace Spice
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
 
+            //DBInitializer setup
+            services.AddScoped<IDbInitializer, DbInitializer>();
+
             //Stripe Configuration Setup 
             services.Configure<StripeSettings>(Configuration.GetSection("Stripe"));
             //SendGrid Configuration setup
@@ -80,7 +83,7 @@ namespace Spice
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env,IDbInitializer dbInitializer)
         {
             if (env.IsDevelopment())
             {
@@ -96,7 +99,7 @@ namespace Spice
             }
             //Stripe Setup 
             StripeConfiguration.ApiKey=(Configuration.GetSection("Stripe")["SecretKey"]);
-
+            dbInitializer.Initialize(); // call DB initializer method
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
