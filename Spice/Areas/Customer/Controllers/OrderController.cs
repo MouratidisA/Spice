@@ -172,9 +172,9 @@ namespace Spice.Areas.Customer.Controllers
             param.Append("/Customer/Order/OrderPickup?productPage=:");
 
 
-            List<OrderHeader> OrderHeaderList = await _db.OrderHeader.Include(o => o.ApplicationUser).Where(u => u.Status == SD.StatusReady).ToListAsync();
+            List<OrderHeader> orderHeaderList = await _db.OrderHeader.Include(o => o.ApplicationUser).Where(u => u.Status == SD.StatusReady).ToListAsync();
 
-            foreach (OrderHeader item in OrderHeaderList)
+            foreach (OrderHeader item in orderHeaderList)
             {
                 OrderDetailsViewModel individual = new OrderDetailsViewModel
                 {
