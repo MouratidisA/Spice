@@ -183,27 +183,6 @@
                 });
             });
 
-
-            $(".btnOrderStatus").click(function () {
-                var $buttonClicked = $(this);
-                var id = $buttonClicked.attr('data-id');
-                $.ajax({
-                    type: "GET",
-                    url: OrderStatusURL,
-                    contentType: "application/json; charset=utf-8",
-                    data: { "Id": id },
-                    cache: false,
-                    datatype: "json",
-                    success: function (data) {
-                        $('#myOrderStatusContent').html(data);
-                        $('#myOrderStatus').modal('show');
-                    },
-                    error: function () {
-                        alert("Dynamic content load failed.");
-                    }
-                });
-            });
-
         });
     </script>
 }
