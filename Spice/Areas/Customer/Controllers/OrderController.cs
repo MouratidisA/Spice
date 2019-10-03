@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Spice.Utility;
 using Stripe;
 
 namespace Spice.Areas.Customer.Controllers
@@ -89,6 +90,28 @@ namespace Spice.Areas.Customer.Controllers
             return View(orderListVM);
         }
 
+
+
+        [Authorize(Roles=SD.KitchenUser+","+SD.ManagerUser)]
+        public async Task<IActionResult> ManageOrder()
+        {
+           List<OrderDetailsViewModel> orderDetailsViewModelList = new List<OrderDetailsViewModel>();
+
+            List<OrderHeader> orderHeaderList = await _db.OrderHeader.Where(u => u.Status==SD.StatusSubmitted || u.Status == SD.StatusInProcess).OrderByDescending(u=>u.PickUpTime).ToListAsync();
+
+            foreach (OrderHeader item in orderHeaderList)
+            {
+                OrderDetailsViewModel individual = new OrderDetailsViewModel
+                {
+                    OrderHeader = item,
+                    OrderDetails = await _db.OrderDetails.Where(o => o.OrderId == item.Id).ToListAsync()
+                };
+                orderDetailsViewModelList.Add(individual);
+            }
+           
+
+            return View(orderDetailsViewModelList.OrderBy(o=>o.OrderHeader.PickUpTime));
+        }
 
         public IActionResult GetOrderStatus(int Id)
         {
